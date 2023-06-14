@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Product Details</title>
+
+  <link rel="icon" href="r.jpg" >
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <style>
+    h1{
+      font-family: cursive;
+    }
+    .product-container {
+      display: flex;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .product-image-container {
+      flex: 1;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .product-details-container {
+      flex: 1;
+      padding: 20px;
+      text-align: left;
+    }
+
+    .product-image {
+      max-width: 100%;
+      max-height: 200px;
+      object-fit: contain;
+      cursor: pointer;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .product-image:hover {
+      transform: scale(1.1);
+    }
+
+    .product-title {
+      margin-top: 0;
+      font-weight: bold;
+    }
+
+    .product-price {
+      font-weight: bold;
+      margin-top: 5px;
+    }
+
+    .product-description {
+      margin-top: 10px;
+    }
+
+    .product-rating {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      padding: 10px;
+    }
+
+    .product-rating-icon {
+      color: palegreen;
+      margin-right: 5px;
+    }
+
+    .product-rating-text {
+      margin-left: 5px;
+    }
+
+    .add-to-cart-button {
+      padding: 10px 20px;
+      background-color: rgb(235, 133, 235);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease-in-out;
+    }
+
+    .add-to-cart-button.added {
+      background-color: plum;
+    }
+
+    /* Header styles */
+    .header {
+      background-color: thistle;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: white;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .logo img {
+      width: 30px;
+      height: 30px;
+      border: 1px solid white;
+      border-radius: 40px;
+      margin: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">
+     <a href="index.html"> <img src="r.jpg" alt="Logo"></a>
+    </div>
+  </header>
+  <h1></h1>
+  <div id="product-details" class="product-container"></div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
+  <script>
+    // Retrieve the product ID from the query parameter in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id');
+
+    // Fetch the product details from the API based on the product ID
+    fetch(`https://fakestoreapi.com/products/${productId}`)
+      .then(response => response.json())
+      .then(product => {
+        const productContainer = document.getElementById('product-details');
+
+        // Create the image container
+        const imageContainer = document.createElement('div');
+        imageContainer.classList.add('product-image-container');
+        imageContainer.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.1)';
+
+        const image = document.createElement('img');
+        image.classList.add('product-image');
+        image.src = product.image;
+        image.alt = product.title;
+        image.addEventListener('click', zoomImage);
+        imageContainer.appendChild(image);
+
+        // Function to handle image zoom
+        function zoomImage() {
+          if (!image.classList.contains('zoomed')) {
+            image.classList.add('zoomed');
+          } else {
+            image.classList.remove('zoomed');
+          }
+        }
+
+        // Create the product details container
+        const detailsContainer = document.createElement('div');
+        detailsContainer.classList.add('product-details-container');
+        detailsContainer.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.1)';
+
+        const title = document.createElement('h2');
+        title.classList.add('product-title');
+        title.textContent = product.title;
+        detailsContainer.appendChild(title);
+
+        const price = document.createElement('div');
+        price.classList.add('product-price');
+        price.textContent = `$${product.price}`;
+        detailsContainer.appendChild(price);
+
+        const description = document.createElement('div');
+        description.classList.add('product-description');
+        description.textContent = product.description;
+        detailsContainer.appendChild(description);
+
+        const rating = document.createElement('div');
+        rating.classList.add('product-rating');
+        const ratingIcon = document.createElement('i');
+        ratingIcon.classList.add('fas', 'fa-star', 'product-rating-icon');
+        rating.appendChild(ratingIcon);
+        const ratingText = document.createElement('span');
+        ratingText.classList.add('product-rating-text');
+        ratingText.textContent = product.rating.rate.toFixed(1);
+        rating.appendChild(ratingText);
+        detailsContainer.appendChild(rating);
+
+        // Add the "Add to Cart" button
+        const addToCartButton = document.createElement('button');
+        addToCartButton.classList.add('add-to-cart-button');
+        addToCartButton.textContent = 'Add to Cart';
+        addToCartButton.addEventListener('click', addToCart);
+        detailsContainer.appendChild(addToCartButton);
+
+        // Function to add the product to the cart
+        function addToCart() {
+          const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+          const cartItem = {
+            id: product.id,
+            title: product.title,
+            price: product.price,
+            image: product.image
+          };
+          cartItems.push(cartItem);
+          localStorage.setItem('cartItems', JSON.stringify(cartItems));
+
+          addToCartButton.classList.add('added');
+          addToCartButton.textContent = 'Added to Cart';
+
+          // Remove the "added" class after 2 seconds to reset the button appearance
+          setTimeout(function() {
+            addToCartButton.classList.remove('added');
+            addToCartButton.textContent = 'Add to Cart';
+          }, 2000);
+        }
+
+        // Append the image and details containers to the main product container
+        productContainer.appendChild(imageContainer);
+        productContainer.appendChild(detailsContainer);
+      })
+      .catch(error => {
+        console.error('Error fetching product details:', error);
+      });
+  </script>
+</body>
+</html>

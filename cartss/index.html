@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Rshop</title>
+  <link rel="icon" href="r.jpg" >
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .header {
+      background-color: thistle;
+      padding: 10px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: white;
+    }
+    
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    img {
+      width: 30px;
+      height: 30px;
+      border: 1px solid white;
+      border-radius: 40px;
+      margin: 8px;
+    }
+
+    .search-box {
+      position: relative;
+      left:430px;
+      top:10px;
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .search-input {
+      width: 290px;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      outline: none;
+      font-size: 14px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 20px;
+      color: gray;
+      cursor: pointer;
+    }
+    h1{
+      font-family:cursive;
+    }
+
+    .product-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      grid-gap: 20px;
+    }
+
+    .product-list-item {
+    padding: 10px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+  }
+
+  .product-image {
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+    margin-bottom: 10px;
+    border-radius: 8px;
+  }
+
+    .product-title {
+      margin-top: 10px;
+      font-weight:normal;
+      font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    }
+
+    .product-price {
+      font-weight: bold;
+      margin-top: 5px;
+    }
+
+    .product-rating {
+      display: flex;
+      align-items: center;
+      margin-top: 5px;
+    }
+
+    .product-rating i {
+      color: plum;
+    }
+
+    .product-rating .rating-number {
+      margin-left: 5px;
+    }
+   
+
+    .cart-count {
+      background-color:  rgb(235, 133, 235);
+      color: white;
+      font-weight: bold;
+      padding: 5px 10px;
+      border-radius: 50%;
+      margin-left: 5px;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">
+     <a href="index.html"><img src="r.jpg" alt="Logo"></a> 
+    </div>
+    <div class="search-box">
+      <input id="search-input" class="search-input" type="text" placeholder="Search...">
+      <i id="search-icon" class="fas fa-search search-icon"></i>
+    </div>
+    
+    <div class="add-to-cart" onclick="goToCart()">
+      <i class="fas fa-shopping-cart"></i>
+      <span id="cart-count" class="cart-count">0</span>
+    </div>
+  </header>
+
+  <h1></h1>
+  <div class="product-list" id="product-list"></div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    // Fetch data from the API and populate the product list
+    fetch('https://fakestoreapi.com/products')
+      .then(response => response.json())
+      .then(products => {
+        const productList = document.getElementById('product-list');
+
+        products.forEach(product => {
+          const listItem = document.createElement('div');
+          listItem.classList.add('product-list-item');
+
+          const image = document.createElement('img');
+          image.classList.add('product-image');
+          image.src = product.image;
+          image.alt = product.title;
+          listItem.appendChild(image);
+
+          const title = document.createElement('h3');
+          title.classList.add('product-title');
+          title.textContent = product.title;
+          listItem.appendChild(title);
+
+          const price = document.createElement('div');
+          price.classList.add('product-price');
+          price.textContent = `$${product.price}`;
+          listItem.appendChild(price);
+
+          const rating = document.createElement('div');
+          rating.classList.add('product-rating');
+          for (let i = 0; i < Math.round(product.rating.rate); i++) {
+            const starIcon = document.createElement('i');
+            starIcon.classList.add('fas', 'fa-star');
+            rating.appendChild(starIcon);
+          }
+          
+          const ratingNumber = document.createElement('span');
+          ratingNumber.classList.add('rating-number');
+          ratingNumber.textContent = `(${product.rating.rate.toFixed(1)})`;
+          rating.appendChild(ratingNumber);
+
+          listItem.appendChild(rating);
+
+          // Add a click event listener to navigate to the product details page
+          listItem.addEventListener('click', () => {
+            // Redirect to the product details page with the product ID as a query parameter
+            window.location.href = `product.html?id=${product.id}`;
+          });
+
+          productList.appendChild(listItem);
+        });
+      })
+      .catch(error => {
+        console.log('Error:', error);
+      });
+
+    // Function to navigate to the cart page
+    function goToCart() {
+      window.location.href = "cart.html";
+    }
+    
+    // Advanced search functionality
+    const searchInput = document.getElementById('search-input');
+    const searchIcon = document.getElementById('search-icon');
+    searchIcon.addEventListener('click', performSearch);
+
+    function performSearch() {
+      const searchTerm = searchInput.value.toLowerCase();
+      const productList = document.getElementById('product-list');
+      const searchResults = document.createElement('div');
+      searchResults.classList.add('product-list');
+      productList.innerHTML = '';
+      productList.appendChild(searchResults);
+
+      fetch('https://fakestoreapi.com/products')
+        .then(response => response.json())
+        .then(products => {
+          const filteredProducts = products.filter(product => {
+            const title = product.title.toLowerCase();
+            return title.includes(searchTerm);
+          });
+
+          filteredProducts.forEach(product => {
+            const listItem = document.createElement('div');
+            listItem.classList.add('product-list-item');
+
+            const image = document.createElement('img');
+            image.classList.add('product-image');
+            image.src = product.image;
+            image.alt = product.title;
+            listItem.appendChild(image);
+
+            const title = document.createElement('h3');
+            title.classList.add('product-title');
+            title.textContent = product.title;
+            listItem.appendChild(title);
+
+            const price = document.createElement('div');
+            price.classList.add('product-price');
+            price.textContent = `$${product.price}`;
+            listItem.appendChild(price);
+
+            const rating = document.createElement('div');
+            rating.classList.add('product-rating');
+            for (let i = 0; i < Math.round(product.rating.rate); i++) {
+              const starIcon = document.createElement('i');
+              starIcon.classList.add('fas', 'fa-star');
+              rating.appendChild(starIcon);
+            }
+            
+            const ratingNumber = document.createElement('span');
+            ratingNumber.classList.add('rating-number');
+            ratingNumber.textContent = `(${product.rating.rate.toFixed(1)})`;
+            rating.appendChild(ratingNumber);
+
+            listItem.appendChild(rating);
+
+            // Add a click event listener to navigate to the product details page
+            listItem.addEventListener('click', () => {
+              // Redirect to the product details page with the product ID as a query parameter
+              window.location.href = `product.html?id=${product.id}`;
+            });
+
+            searchResults.appendChild(listItem);
+          });
+        })
+        .catch(error => {
+          console.log('Error:', error);
+        });
+    }
+
+    // Function to update the cart count
+    function updateCartCount() {
+      const cartCount = document.getElementById('cart-count');
+      const cartItems = JSON.parse(localStorage.getItem('cartItems'));
+      if (cartItems) {
+        cartCount.textContent = cartItems.length;
+      } else {
+        cartCount.textContent = '0';
+      }
+    }
+
+    // Update the cart count initially
+    updateCartCount();
+  </script>
+</body>
+</html>
