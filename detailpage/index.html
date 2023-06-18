@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Rshop</title>
+  <link rel="icon" href="r.jpg" >
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    .header {
+      background-color: thistle;
+      padding: 10px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: white;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    img {
+      width: 30px;
+      height: 30px;
+      border: 1px solid white;
+      border-radius: 40px;
+      margin: 8px;
+    }
+
+    .search-box {
+      position: relative;
+      left: 430px;
+      top: 10px;
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .search-input {
+      width: 290px;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      outline: none;
+      font-size: 14px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 20px;
+      color: gray;
+      cursor: pointer;
+    }
+
+    h1 {
+      font-family: cursive;
+    }
+
+    .product-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      grid-gap: 20px;
+    }
+
+    .product-list-item {
+      padding: 10px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+
+    .product-image {
+      width: 100%;
+      height: 200px;
+      object-fit: contain;
+      margin-bottom: 10px;
+      border-radius: 8px;
+    }
+
+    .product-title {
+      margin-top: 10px;
+      font-weight: normal;
+      font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    }
+
+    .product-price {
+      font-weight: bold;
+      margin-top: 5px;
+    }
+
+    .product-rating {
+      display: flex;
+      align-items: center;
+      margin-top: 5px;
+    }
+
+    .product-rating i {
+      color: plum;
+    }
+
+    .product-rating .rating-number {
+      margin-left: 5px;
+    }
+    .add-to-cart {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.add-to-cart i {
+  margin-right: 5px;
+}
+
+.cart-count {
+      position: absolute;
+      top: 23px;
+      right: 10px;
+      background-color: rgb(247, 161, 247);
+      color: white;
+      border-radius: 50%;
+      padding: 4px 6px;
+      font-size: 12px;
+    }
+
+    
+    .filter-section {
+      background-color: white;
+      box-shadow: 0 2px 4px rgba(243, 237, 237, 0.1);
+      padding: 10px;
+      border-radius: 8px;
+      margin: 20px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .filter-label {
+      margin-right: 10px;
+      position: relative;
+      top:8px;
+    }
+
+    .filter-select {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      outline: none;
+      font-size: 14px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      background-color: plum;
+      color: #333;
+      
+    }
+   
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">
+      <a href="index.html"><img src="r.jpg" alt="Logo"></a>
+    </div>
+    <div class="search-box">
+      <input id="search-input" class="search-input" type="text" placeholder="Search...">
+      <i id="search-icon" class="fas fa-search search-icon"></i>
+    </div>
+
+    <div class="add-to-cart" onclick="goToCart()">
+      <i class="fas fa-shopping-cart"></i>
+      <span id="cart-count" class="cart-count">0</span>
+    </div>
+  </header>
+
+  <div class="filter-section">
+    <label class="filter-label" for="sort-select">Sort by:</label>
+    <select id="sort-select" class="filter-select">
+      <option value="none">None</option>
+      <option value="price-low">Price (Low to High)</option>
+      <option value="price-high">Price (High to Low)</option>
+      <option value="rating">Customer Rating</option>
+    </select>
+  </div>
+
+  <h1></h1>
+  <div class="product-list" id="product-list"></div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    let productsData = []; // Variable to store the fetched products data
+
+    // Fetch data from the API and populate the product list
+    fetch('https://fakestoreapi.com/products')
+      .then(response => response.json())
+      .then(products => {
+        productsData = products; // Store the fetched products data for later use
+        populateProductList(products);
+      })
+      .catch(error => {
+        console.log('Error:', error);
+      });
+
+    // Function to populate the product list
+    function populateProductList(products) {
+      const productList = document.getElementById('product-list');
+      productList.innerHTML = '';
+
+      products.forEach(product => {
+        const listItem = document.createElement('div');
+        listItem.classList.add('product-list-item');
+
+        const image = document.createElement('img');
+        image.classList.add('product-image');
+        image.src = product.image;
+        image.alt = product.title;
+        listItem.appendChild(image);
+
+        const title = document.createElement('h3');
+        title.classList.add('product-title');
+        title.textContent = product.title;
+        listItem.appendChild(title);
+
+        const price = document.createElement('div');
+        price.classList.add('product-price');
+        price.textContent = `$${product.price}`;
+        listItem.appendChild(price);
+
+        const rating = document.createElement('div');
+        rating.classList.add('product-rating');
+
+        // Calculate the Amazon-style rating
+        const roundedRating = Math.round(product.rating.rate);
+        const fullStars = Math.floor(roundedRating);
+        const halfStar = roundedRating - fullStars >= 0.5;
+        const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+
+        for (let i = 0; i < fullStars; i++) {
+          const starIcon = document.createElement('i');
+          starIcon.classList.add('fas', 'fa-star');
+          rating.appendChild(starIcon);
+        }
+
+        if (halfStar) {
+          const halfStarIcon = document.createElement('i');
+          halfStarIcon.classList.add('fas', 'fa-star-half-alt');
+          rating.appendChild(halfStarIcon);
+        }
+
+        for (let i = 0; i < emptyStars; i++) {
+          const emptyStarIcon = document.createElement('i');
+          emptyStarIcon.classList.add('far', 'fa-star');
+          rating.appendChild(emptyStarIcon);
+        }
+
+        const ratingNumber = document.createElement('span');
+        ratingNumber.classList.add('rating-number');
+        ratingNumber.textContent = `(${product.rating.rate.toFixed(1)})`;
+        rating.appendChild(ratingNumber);
+
+        listItem.appendChild(rating);
+
+        // Add a click event listener to navigate to the product details page
+        listItem.addEventListener('click', () => {
+          // Redirect to the product details page with the product ID as a query parameter
+          window.location.href = `product.html?id=${product.id}`;
+        });
+
+        productList.appendChild(listItem);
+      });
+    }
+
+    // Function to navigate to the cart page
+    function goToCart() {
+      window.location.href = "cart.html";
+    }
+
+    // Function to update the cart count
+    function updateCartCount() {
+      const cartCount = document.getElementById('cart-count');
+      const cartItems = JSON.parse(localStorage.getItem('cartItems'));
+      if (cartItems) {
+        cartCount.textContent = cartItems.length;
+      } else {
+        cartCount.textContent = '0';
+      }
+    }
+
+    // Update the cart count initially
+    updateCartCount();
+
+    // Sort select element
+    const sortSelect = document.getElementById('sort-select');
+    sortSelect.addEventListener('change', handleSortChange);
+
+    // Handle sort change event
+    function handleSortChange() {
+      const selectedValue = sortSelect.value;
+
+      switch (selectedValue) {
+        case 'price-low':
+          sortByPriceLowToHigh();
+          break;
+        case 'price-high':
+          sortByPriceHighToLow();
+          break;
+        case 'rating':
+          sortByRating();
+          break;
+        case 'none':
+          populateProductList(productsData);
+          break;
+        default:
+          break;
+      }
+    }
+
+    // Function to sort products by price in ascending order
+    function sortByPriceLowToHigh() {
+      const sortedProducts = productsData.slice().sort((a, b) => a.price - b.price);
+      populateProductList(sortedProducts);
+    }
+
+    // Function to sort products by price in descending order
+    function sortByPriceHighToLow() {
+      const sortedProducts = productsData.slice().sort((a, b) => b.price - a.price);
+      populateProductList(sortedProducts);
+    }
+
+    // Function to sort products by rating in descending order
+    function sortByRating() {
+      const sortedProducts = productsData.slice().sort((a, b) => b.rating.rate - a.rating.rate);
+      populateProductList(sortedProducts);
+    }
+
+    // Advanced search functionality
+    const searchInput = document.getElementById('search-input');
+    const searchIcon = document.getElementById('search-icon');
+    searchIcon.addEventListener('click', performSearch);
+
+    function performSearch() {
+      const searchTerm = searchInput.value.toLowerCase();
+      const filteredProducts = productsData.filter(product => {
+        const title = product.title.toLowerCase();
+        const description = product.description.toLowerCase();
+        return title.includes(searchTerm) || description.includes(searchTerm);
+      });
+
+      populateProductList(filteredProducts);
+    }
+  </script>
+</body>
+</html>
+
+

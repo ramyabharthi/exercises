@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Cart</title>
+  <link rel="icon" href="r.jpg">
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      background-color: thistle;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: white;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 9999;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    img {
+      width: 30px;
+      height: 30px;
+      border: 1px solid white;
+      border-radius: 40px;
+      margin: 8px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-family: cursive;
+      justify-content: space-between;
+      font-size: 20px;
+    }
+
+    .cart-item {
+      width: 300px;
+      border: 1px solid #ccc;
+      padding: 20px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .cart-item-image {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      margin-right: 10px;
+    }
+
+    .cart-item-details {
+      flex: 1;
+    }
+
+    .cart-item-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .cart-item-price {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .cart-item-quantity {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .quantity-label {
+      margin-right: 10px;
+    }
+
+    .quantity-value {
+      margin-right: 10px;
+    }
+
+    .quantity-button {
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      cursor: pointer;
+      background-color: whitesmoke;
+      color: black;
+      text-align: center;
+      border: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .quantity-button:hover {
+      background-color: plum;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .remove-button {
+      background-color: rgb(240, 168, 240);
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: background-color 0.3s ease;
+    }
+
+    .remove-button:hover {
+      background-color: rgb(240, 168, 240);
+    }
+
+    .empty-cart-message {
+      font-weight: bold;
+    }
+
+    .total-amount {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <a href="index.html"> <img src="r.jpg" alt="Logo"></a>
+    </div>
+  </header>
+  <h1>My Cart</h1>
+  <div id="cart-items"></div>
+  <div class="total-section">
+    <div class="total-label">Total Amount:</div>
+    <div id="total-amount" class="total-amount"></div>
+  </div>
+
+  <script>
+    let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+
+    function updateCart() {
+      const cartItemsContainer = document.getElementById('cart-items');
+      cartItemsContainer.innerHTML = '';
+
+      for (let item of cartItems) {
+        const existingCartItem = cartItemsContainer.querySelector(`[data-item-id="${item.id}"]`);
+        if (existingCartItem) {
+          const quantityValue = existingCartItem.querySelector('.quantity-value');
+          item.quantity = item.quantity ? item.quantity + 1 : 2;
+          quantityValue.textContent = item.quantity;
+        } else {
+          const cartItem = document.createElement('div');
+          cartItem.classList.add('cart-item');
+          cartItem.setAttribute('data-item-id', item.id);
+
+          const itemImage = document.createElement('img');
+          itemImage.src = item.image;
+          itemImage.alt = item.title;
+          itemImage.classList.add('cart-item-image');
+          cartItem.appendChild(itemImage);
+
+          const itemDetails = document.createElement('div');
+          itemDetails.classList.add('cart-item-details');
+
+          const itemTitle = document.createElement('div');
+          itemTitle.classList.add('cart-item-title');
+          itemTitle.textContent = item.title;
+          itemDetails.appendChild(itemTitle);
+
+          const itemPrice = document.createElement('div');
+          itemPrice.classList.add('cart-item-price');
+          itemPrice.textContent = `Price: $${isNaN(item.price) ? 'N/A' : item.price}`;
+          itemDetails.appendChild(itemPrice);
+
+          const itemQuantity = document.createElement('div');
+          itemQuantity.classList.add('cart-item-quantity');
+
+          const quantityLabel = document.createElement('div');
+          quantityLabel.classList.add('quantity-label');
+          quantityLabel.textContent = 'Quantity:';
+          itemQuantity.appendChild(quantityLabel);
+
+          const quantityValue = document.createElement('div');
+          quantityValue.classList.add('quantity-value');
+          quantityValue.textContent = item.quantity || 1;
+          itemQuantity.appendChild(quantityValue);
+
+          const decreaseButton = document.createElement('button');
+          decreaseButton.classList.add('quantity-button');
+          decreaseButton.textContent = '-';
+          decreaseButton.addEventListener('click', () => decreaseQuantity(item.id));
+          itemQuantity.appendChild(decreaseButton);
+
+          const increaseButton = document.createElement('button');
+          increaseButton.classList.add('quantity-button');
+          increaseButton.textContent = '+';
+          increaseButton.addEventListener('click', () => increaseQuantity(item.id));
+          itemQuantity.appendChild(increaseButton);
+
+          itemDetails.appendChild(itemQuantity);
+
+          const removeButton = document.createElement('button');
+          removeButton.classList.add('remove-button');
+          removeButton.textContent = 'Remove';
+          removeButton.addEventListener('click', () => removeItem(item.id));
+          itemDetails.appendChild(removeButton);
+
+          cartItem.appendChild(itemDetails);
+
+          cartItemsContainer.appendChild(cartItem);
+        }
+      }
+
+      updateTotalAmount();
+      saveCartItems();
+    }
+  
+    function decreaseQuantity(itemId) {
+      const item = cartItems.find(item => item.id === itemId);
+
+      if (item) {
+        if (item.quantity && item.quantity > 1) {
+          item.quantity--;
+        } else {
+          const confirmDelete = confirm('Do you want to remove it from the cart?');
+          if (confirmDelete) {
+            removeItem(itemId);
+            return;
+          }
+        }
+      }
+
+      updateCart();
+    }
+
+    function increaseQuantity(itemId) {
+      const item = cartItems.find(item => item.id === itemId);
+
+      if (item) {
+        item.quantity = item.quantity ? item.quantity + 1 : 2;
+      }
+
+      updateCart();
+    }
+
+    function removeItem(itemId) {
+      cartItems = cartItems.filter(item => item.id !== itemId);
+      updateCart();
+    }
+
+    function updateTotalAmount() {
+      const totalAmount = cartItems.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+      const totalAmountElement = document.getElementById('total-amount');
+      totalAmountElement.textContent = `$${totalAmount.toFixed(2)}`;
+    }
+
+    function saveCartItems() {
+      localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    }
+
+    updateCart();
+  </script>
+</body>
+</html>
