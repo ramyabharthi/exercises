@@ -3,31 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>Cart</title>
   <link rel="icon" href="r.jpg">
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <style>
     body {
-      font-family: system-ui, -apple-system;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
     }
 
-    header {
+    .header {
       background-color: thistle;
       padding: 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       color: white;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      z-index: 9999;
     }
 
     .logo {
@@ -35,7 +27,7 @@
       font-weight: bold;
     }
 
-    img {
+    .logo img {
       width: 30px;
       height: 30px;
       border: 1px solid white;
@@ -43,11 +35,33 @@
       margin: 8px;
     }
 
-    h1 {
-      margin-bottom: 20px;
-      font-family: cursive;
-      justify-content: space-between;
-      font-size: 20px;
+    .cart-icon {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .cart-icon i {
+      font-size: 24px;
+      color: #fff;
+    }
+
+    .cart-count {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background-color: rgb(247, 161, 247);
+      color: white;
+      border-radius: 50%;
+      padding: 4px 6px;
+      font-size: 12px;
+    }
+
+    .cart-container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      position: relative;
+      right: -70px;
     }
 
     .cart-item {
@@ -61,30 +75,32 @@
     }
 
     .cart-item-image {
-      width: 80px;
-      height: 80px;
-      object-fit: cover;
-      margin-right: 10px;
+      flex: 1;
+      text-align: center;
+    }
+
+    .cart-item-image img {
+      max-width: 100px;
+      max-height: 100px;
+      object-fit: contain;
     }
 
     .cart-item-details {
-      flex: 1;
+      flex: 2;
+      margin-left: 10px;
     }
 
     .cart-item-title {
       font-weight: bold;
-      margin-bottom: 5px;
     }
 
     .cart-item-price {
-      font-weight: bold;
-      margin-bottom: 5px;
+      margin-top: 5px;
     }
 
-    .cart-item-quantity {
+    .quantity-container {
       display: flex;
       align-items: center;
-      margin-bottom: 5px;
     }
 
     .quantity-label {
@@ -126,153 +142,155 @@
       background-color: rgb(240, 168, 240);
     }
 
-    .empty-cart-message {
-      font-weight: bold;
-    }
-
-    .total-amount {
+    .cart-total {
       font-weight: bold;
       margin-top: 10px;
+      position: relative;
+      right: -120px;
     }
   </style>
 </head>
 <body>
-  <header>
+  <header class="header">
     <div class="logo">
-      <a href="index.html"> <img src="r.jpg" alt="Logo"></a>
+      <a href="index.html"><img src="r.jpg" alt="Logo"></a>
+    </div>
+    <div class="cart-icon">
+      <a href="cart.html">
+        <i class="fas fa-shopping-cart"></i>
+        <span id="cart-count" class="cart-count">0</span>
+      </a>
     </div>
   </header>
-  <h1>My Cart</h1>
-  <div id="cart-items"></div>
-  <div class="total-section">
-    <div class="total-label">Total Amount:</div>
-    <div id="total-amount" class="total-amount"></div>
+  <div class="cart-container">
+    <div id="cart-items"></div>
+    <div id="cart-total" class="cart-total"></div>
   </div>
-
   <script>
-    let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
-
-    function updateCart() {
+    document.addEventListener('DOMContentLoaded', () => {
+      const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
       const cartItemsContainer = document.getElementById('cart-items');
-      cartItemsContainer.innerHTML = '';
+      const cartTotalContainer = document.getElementById('cart-total');
 
-      for (let item of cartItems) {
-        const existingCartItem = cartItemsContainer.querySelector(`[data-item-id="${item.id}"]`);
-        if (existingCartItem) {
-          const quantityValue = existingCartItem.querySelector('.quantity-value');
-          item.quantity = item.quantity ? item.quantity + 1 : 2;
-          quantityValue.textContent = item.quantity;
+      if (cartItems.length === 0) {
+        cartItemsContainer.textContent = 'Your cart is empty.';
+        return;
+      }
+
+      let totalPrice = 0;
+
+      const cartItemsMap = {};
+
+      cartItems.forEach((item) => {
+        if (cartItemsMap[item.id]) {
+          cartItemsMap[item.id].quantity += 1;
         } else {
-          const cartItem = document.createElement('div');
-          cartItem.classList.add('cart-item');
-          cartItem.setAttribute('data-item-id', item.id);
+          cartItemsMap[item.id] = {
+            item,
+            quantity: 1
+          };
+        }
+      });
 
+      const renderCartItems = () => {
+        cartItemsContainer.innerHTML = '';
+        totalPrice = 0;
+
+        Object.values(cartItemsMap).forEach((cartItem) => {
+          const item = cartItem.item;
+          const quantity = cartItem.quantity;
+
+          const cartItemElement = document.createElement('div');
+          cartItemElement.classList.add('cart-item');
+
+          const itemImageContainer = document.createElement('div');
+          itemImageContainer.classList.add('cart-item-image');
           const itemImage = document.createElement('img');
           itemImage.src = item.image;
           itemImage.alt = item.title;
-          itemImage.classList.add('cart-item-image');
-          cartItem.appendChild(itemImage);
+          itemImageContainer.appendChild(itemImage);
 
-          const itemDetails = document.createElement('div');
-          itemDetails.classList.add('cart-item-details');
-
+          const itemDetailsContainer = document.createElement('div');
+          itemDetailsContainer.classList.add('cart-item-details');
           const itemTitle = document.createElement('div');
           itemTitle.classList.add('cart-item-title');
           itemTitle.textContent = item.title;
-          itemDetails.appendChild(itemTitle);
-
           const itemPrice = document.createElement('div');
           itemPrice.classList.add('cart-item-price');
-          itemPrice.textContent = `Price: $${isNaN(item.price) ? 'N/A' : item.price}`;
-          itemDetails.appendChild(itemPrice);
+          itemPrice.textContent = `$${item.price}`;
 
-          const itemQuantity = document.createElement('div');
-          itemQuantity.classList.add('cart-item-quantity');
-
-          const quantityLabel = document.createElement('div');
-          quantityLabel.classList.add('quantity-label');
-          quantityLabel.textContent = 'Quantity:';
-          itemQuantity.appendChild(quantityLabel);
-
-          const quantityValue = document.createElement('div');
-          quantityValue.classList.add('quantity-value');
-          quantityValue.textContent = item.quantity || 1;
-          itemQuantity.appendChild(quantityValue);
-
-          const decreaseButton = document.createElement('button');
+          const quantityContainer = document.createElement('div');
+          quantityContainer.classList.add('quantity-container');
+          const decreaseButton = document.createElement('div');
           decreaseButton.classList.add('quantity-button');
           decreaseButton.textContent = '-';
-          decreaseButton.addEventListener('click', () => decreaseQuantity(item.id));
-          itemQuantity.appendChild(decreaseButton);
-
-          const increaseButton = document.createElement('button');
+          decreaseButton.addEventListener('click', () => decreaseQuantity(item));
+          const quantityValue = document.createElement('div');
+          quantityValue.classList.add('quantity-value');
+          quantityValue.textContent = quantity;
+          const increaseButton = document.createElement('div');
           increaseButton.classList.add('quantity-button');
           increaseButton.textContent = '+';
-          increaseButton.addEventListener('click', () => increaseQuantity(item.id));
-          itemQuantity.appendChild(increaseButton);
-
-          itemDetails.appendChild(itemQuantity);
+          increaseButton.addEventListener('click', () => increaseQuantity(item));
 
           const removeButton = document.createElement('button');
           removeButton.classList.add('remove-button');
           removeButton.textContent = 'Remove';
-          removeButton.addEventListener('click', () => removeItem(item.id));
-          itemDetails.appendChild(removeButton);
+          removeButton.addEventListener('click', () => removeItem(item));
 
-          cartItem.appendChild(itemDetails);
+          itemDetailsContainer.appendChild(itemTitle);
+          itemDetailsContainer.appendChild(itemPrice);
+          quantityContainer.appendChild(decreaseButton);
+          quantityContainer.appendChild(quantityValue);
+          quantityContainer.appendChild(increaseButton);
+          itemDetailsContainer.appendChild(quantityContainer);
+          itemDetailsContainer.appendChild(removeButton);
 
-          cartItemsContainer.appendChild(cartItem);
-        }
-      }
+          cartItemElement.appendChild(itemImageContainer);
+          cartItemElement.appendChild(itemDetailsContainer);
 
-      updateTotalAmount();
-      saveCartItems();
-    }
-  
-    function decreaseQuantity(itemId) {
-      const item = cartItems.find(item => item.id === itemId);
+          cartItemsContainer.appendChild(cartItemElement);
 
-      if (item) {
-        if (item.quantity && item.quantity > 1) {
-          item.quantity--;
+          totalPrice += item.price * quantity;
+        });
+
+        cartTotalContainer.textContent = `Total: $${totalPrice.toFixed(2)}`;
+      };
+
+      const decreaseQuantity = (item) => {
+        if (cartItemsMap[item.id].quantity === 1) {
+          removeItem(item);
         } else {
-          const confirmDelete = confirm('Do you want to remove it from the cart?');
-          if (confirmDelete) {
-            removeItem(itemId);
-            return;
-          }
+          cartItemsMap[item.id].quantity -= 1;
+          renderCartItems();
+          saveCartItems();
         }
-      }
+      };
 
-      updateCart();
-    }
+      const increaseQuantity = (item) => {
+        cartItemsMap[item.id].quantity += 1;
+        renderCartItems();
+        saveCartItems();
+      };
 
-    function increaseQuantity(itemId) {
-      const item = cartItems.find(item => item.id === itemId);
+      const removeItem = (item) => {
+        delete cartItemsMap[item.id];
+        renderCartItems();
+        saveCartItems();
+      };
 
-      if (item) {
-        item.quantity = item.quantity ? item.quantity + 1 : 2;
-      }
+      const saveCartItems = () => {
+        const items = Object.values(cartItemsMap).flatMap((cartItem) => {
+          const item = cartItem.item;
+          const quantity = cartItem.quantity;
+          return Array(quantity).fill(item);
+        });
 
-      updateCart();
-    }
+        localStorage.setItem('cartItems', JSON.stringify(items));
+      };
 
-    function removeItem(itemId) {
-      cartItems = cartItems.filter(item => item.id !== itemId);
-      updateCart();
-    }
-
-    function updateTotalAmount() {
-      const totalAmount = cartItems.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
-      const totalAmountElement = document.getElementById('total-amount');
-      totalAmountElement.textContent = `$${totalAmount.toFixed(2)}`;
-    }
-
-    function saveCartItems() {
-      localStorage.setItem('cartItems', JSON.stringify(cartItems));
-    }
-
-    updateCart();
+      renderCartItems();
+    });
   </script>
 </body>
 </html>
