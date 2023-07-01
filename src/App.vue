@@ -1,16 +1,23 @@
+<template>
+ <div>
+    <FormList/>
+   
+  </div>
+
+</template>
+
 <script >
-import FormList from './components/FormList.vue'
+import FormList from './components/FormList.vue';
+
+
 export default {
   name: 'App',
   components: {
-          FormList
+          FormList,
+          
   }
 }
 </script>
-
-<template>
-  <FormList/>
-</template>
 
 <style >
 

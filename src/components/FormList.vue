@@ -1,178 +1,181 @@
 <template>
-    <div id="app">
-      <h2>Add user</h2>
-      <div class="form-box">
-        <button class="add-button" @click="openModal(null)">+</button>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Email</th>
-              <th>Password</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(form, index) in formList" :key="index">
-              <td>{{ form.name }}</td>
-              <td>{{ form.phone }}</td>
-              <td>{{ form.email }}</td>
-              <td>{{ form.password }}</td>
-              <td>
-                <button class="edit-button" @click="openModal(index)">Edit</button>
-                <button class="delete-button" @click="deleteForm(index)">Delete</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="modal" v-if="showModal">
-        <div class="modal-content">
-          <h3>{{ editIndex !== null ? 'Edit Form' : 'Create Form' }}</h3>
-          <div class="form-field">
-            <label for="name">Name:</label>
-            <input type="text" id="name" v-model="editData.name" />
-            <span class="error">{{ errors.name }}</span>
-          </div>
-          <div class="form-field">
-            <label for="phone">Phone Number:</label>
-            <input type="text" id="phone" v-model="editData.phone" />
-            <span class="error">{{ errors.phone }}</span>
-          </div>
-          <div class="form-field">
-            <label for="email">Email:</label>
-            <input type="text" id="email" v-model="editData.email" />
-            <span class="error">{{ errors.email }}</span>
-          </div>
-          <div class="form-field">
-            <label for="password">Password:</label>
-            <input type="password" id="password" v-model="editData.password" />
-            <span class="error">{{ errors.password }}</span>
-          </div>
-          <div class="button-row">
-            <button class="save-button" @click="createForm">Save</button>
-            <button class="cancel-button" @click="closeModal">Cancel</button>
-          </div>
+  <div>
+    <h2>Add user</h2>
+    <div class="form-box">
+      <RouterLink to="/user/add" class="add-button" @click="openModal">+</RouterLink>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Password</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(form, index) in formList" :key="index">
+            <td class="form-value-cell">{{ form.name }}</td>
+            <td class="form-value-cell">{{ form.phone }}</td>
+            <td class="form-value-cell">{{ form.email }}</td>
+            <td class="form-value-cell">{{ form.password }}</td>
+            <td>
+              <RouterLink to="/user/edit" class="edit-button" @click="editForm(index)">Edit</RouterLink>
+              <RouterLink to="/user/delete" class="delete-button" @click="deleteForm(index)">Delete</RouterLink>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="modal" v-if="showModal">
+      <div class="modal-content">
+        <h3>{{ editIndex !== null ? 'Edit Form' : 'Create Form' }}</h3>
+        <div class="form-field">
+          <label for="name">Name:</label>
+          <input type="text" id="name" v-model="editData.name" />
+          <span class="error">{{ errors.name }}</span>
+        </div>
+        <div class="form-field">
+          <label for="phone">Phone Number:</label>
+          <input type="text" id="phone" v-model="editData.phone" />
+          <span class="error">{{ errors.phone }}</span>
+        </div>
+        <div class="form-field">
+          <label for="email">Email:</label>
+          <input type="text" id="email" v-model="editData.email" />
+          <span class="error">{{ errors.email }}</span>
+        </div>
+        <div class="form-field">
+          <label for="password">Password:</label>
+          <input type="password" id="password" v-model="editData.password" />
+          <span class="error">{{ errors.password }}</span>
+        </div>
+        <div class="button-row">
+          <button class="save-button" @click="createForm">Save</button>
+          <button class="cancel-button" @click="closeModal">Cancel</button>
         </div>
       </div>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    data() {
-      return {
-        formList: [],
-        editData: {
-          name: '',
-          phone: '',
-          email: '',
-          password: '',
-        },
-        showModal: false,
-        editIndex: null,
-        errors: {
-          name: '',
-          phone: '',
-          email: '',
-          password: '',
-        },
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      formList: [],
+      editData: {
+        name: "",
+        phone: "",
+        email: "",
+        password: "",
+      },
+      showModal: false,
+      editIndex: null,
+      errors: {
+        name: "",
+        phone: "",
+        email: "",
+        password: "",
+      },
+    };
+  },
+  mounted() {
+    this.retrieveDataFromLocalStorage();
+  },
+  methods: {
+    openModal() {
+      this.showModal = true;
+      this.clearErrors();
+      this.editIndex = null;
+      this.editData = {
+        name: "",
+        phone: "",
+        email: "",
+        password: "",
       };
     },
-    mounted() {
-      this.retrieveDataFromLocalStorage();
+    editForm(index) {
+      this.showModal = true;
+      this.clearErrors();
+      const form = this.formList[index];
+      this.editIndex = index;
+      this.editData = { ...form };
     },
-    methods: {
-      openModal(index) {
-        this.showModal = true;
-        if (index !== null) {
-          const form = this.formList[index];
-          this.editIndex = index;
-          this.editData = { ...form };
+    closeModal() {
+      this.showModal = false;
+      this.clearErrors();
+      this.editIndex = null;
+      this.editData = {
+        name: "",
+        phone: "",
+        email: "",
+        password: "",
+      };
+    },
+    createForm() {
+      if (this.validateForm()) {
+        if (this.editIndex !== null) {
+          Object.assign(this.formList[this.editIndex], this.editData);
         } else {
-          this.editIndex = null;
-          this.editData = {
-            name: '',
-            phone: '',
-            email: '',
-            password: '',
-          };
+          this.formList.push({ ...this.editData });
         }
-        this.clearErrors();
-      },
-      closeModal() {
-        this.showModal = false;
-        this.editIndex = null;
-        this.editData = {
-          name: '',
-          phone: '',
-          email: '',
-          password: '',
-        };
-        this.clearErrors();
-      },
-      createForm() {
-        if (this.validateForm()) {
-          if (this.editIndex !== null) {
-            Object.assign(this.formList[this.editIndex], this.editData);
-          } else {
-            this.formList.push({ ...this.editData });
-          }
-          this.saveDataToLocalStorage();
-          this.closeModal();
-        }
-      },
-      deleteForm(index) {
-        this.formList.splice(index, 1);
         this.saveDataToLocalStorage();
-      },
-      validateForm() {
-        this.clearErrors();
-        let isValid = true;
-  
-        if (!this.editData.name) {
-          this.errors.name = 'Name is required.';
-          isValid = false;
-        }
-        if (!this.editData.phone) {
-          this.errors.phone = 'Phone number is required.';
-          isValid = false;
-        } else if (this.editData.phone.length !== 10 || !/^\d+$/.test(this.editData.phone)) {
-          this.errors.phone = 'Phone number must be a 10-digit number.';
-          isValid = false;
-        }
-        if (!this.editData.email) {
-          this.errors.email = 'Email is required.';
-          isValid = false;
-        }
-        if (!this.editData.password) {
-          this.errors.password = 'Password is required.';
-          isValid = false;
-        }
-  
-        return isValid;
-      },
-      clearErrors() {
-        this.errors = {
-          name: '',
-          phone: '',
-          email: '',
-          password: '',
-        };
-      },
-      saveDataToLocalStorage() {
-        localStorage.setItem('formList', JSON.stringify(this.formList));
-      },
-      retrieveDataFromLocalStorage() {
-        const storedData = localStorage.getItem('formList');
-        if (storedData) {
-          this.formList = JSON.parse(storedData);
-        }
-      },
+        this.closeModal();
+      }
     },
-  };
-  </script>
+    deleteForm(index) {
+      this.formList.splice(index, 1);
+      this.saveDataToLocalStorage();
+    },
+    validateForm() {
+      this.clearErrors();
+      let isValid = true;
+
+      if (!this.editData.name) {
+        this.errors.name = "Name is required.";
+        isValid = false;
+      }
+      if (!this.editData.phone) {
+        this.errors.phone = "Phone number is required.";
+        isValid = false;
+      } else if (this.editData.phone.length !== 10 || !/^\d+$/.test(this.editData.phone)) {
+        this.errors.phone = "Phone number must be a 10-digit number.";
+        isValid = false;
+      }
+      if (!this.editData.email) {
+        this.errors.email = "Email is required.";
+        isValid = false;
+      }
+      if (!this.editData.password) {
+        this.errors.password = "Password is required.";
+        isValid = false;
+      }
+
+      return isValid;
+    },
+    clearErrors() {
+      this.errors = {
+        name: "",
+        phone: "",
+        email: "",
+        password: "",
+      };
+    },
+    saveDataToLocalStorage() {
+      localStorage.setItem("formList", JSON.stringify(this.formList));
+    },
+    retrieveDataFromLocalStorage() {
+      const storedData = localStorage.getItem("formList");
+      if (storedData) {
+        this.formList = JSON.parse(storedData);
+      }
+    },
+  },
+};
+</script>
 <style>
   #app {
     margin: 20px;
@@ -189,16 +192,25 @@
   }
   
   .add-button {
-    font-size: 24px;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    border: none;
-    background-color: #45B2C9;
-    color: #fff;
-    cursor: pointer;
-  }
-  
+  font-size: 24px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background-color: #45B2C9;
+  color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+  position: relative;
+  top:-115px;
+  right:-100px;
+}
+
   .table {
     width: 100%;
     margin-top: 20px;
@@ -214,6 +226,9 @@
   .table th {
     background-color: #f2f2f2;
   }
+  .form-value-cell{
+    text-align: center;
+  }
   
   .edit-button{
     font-size: 14px;
@@ -224,6 +239,10 @@
     background-color: #45B2C9;
     color: #fff;
     cursor: pointer;
+    text-decoration: none;
+    position: relative;
+    right: -97px;
+
   }
   
   .delete-button {
@@ -236,6 +255,10 @@
     background-color: #E6321F;
     color: #fff;
     cursor: pointer;
+    text-decoration: none;
+    position: relative;
+    right: -97px;
+
   }
   
   .modal {
