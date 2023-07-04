@@ -1,25 +1,27 @@
 <template>
-  <div class="modal" v-if="showModal">
-    <div class="modal-content">
-      <h3>Edit Form</h3>
-      <div class="form-field">
-        <label for="name">Name:</label>
-        <input type="text" id="name" v-model="editData.name" />
-        <span class="error">{{ errors.name }}</span>
-      </div>
-      <div class="form-field">
-        <label for="phone">Phone Number:</label>
-        <input type="text" id="phone" v-model="editData.phone" />
-        <span class="error">{{ errors.phone }}</span>
-      </div>
-      <div class="form-field">
-        <label for="email">Email:</label>
-        <input type="text" id="email" v-model="editData.email" />
-        <span class="error">{{ errors.email }}</span>
-      </div>
-      <div class="button-row">
-        <button class="save-button" @click="saveForm">Save</button>
-        <button class="cancel-button" @click="closeModal">Cancel</button>
+  <div>
+    <div class="modal" v-if="showModal">
+      <div class="modal-content">
+        <h3>Edit Form</h3>
+        <div class="form-field">
+          <label for="name">Name:</label>
+          <input type="text" id="name" v-model="editData.name" />
+          <span class="error">{{ errors.name }}</span>
+        </div>
+        <div class="form-field">
+          <label for="phone">Phone Number:</label>
+          <input type="text" id="phone" v-model="editData.phone" />
+          <span class="error">{{ errors.phone }}</span>
+        </div>
+        <div class="form-field">
+          <label for="email">Email:</label>
+          <input type="text" id="email" v-model="editData.email" />
+          <span class="error">{{ errors.email }}</span>
+        </div>
+        <div class="button-row">
+          <button class="save-button" @click="saveForm">Save</button>
+          <button class="cancel-button" @click="closeModal">Cancel</button>
+        </div>
       </div>
     </div>
   </div>
@@ -43,12 +45,21 @@ export default {
       },
     };
   },
-  methods: {
-    showFormModal(index) {
-      this.editIndex = index;
-      this.editData = { ...this.forms[index] };
+  created() {
+    if (this.$route.path === '/edit') {
       this.showModal = true;
+    }
+  },
+  watch: {
+    $route(to) {
+      if (to.path === '/edit') {
+        this.showModal = true;
+      } else {
+        this.showModal = false;
+      }
     },
+  },
+  methods: {
     saveForm() {
       // Validate form data
       if (!this.validateForm()) {
@@ -56,7 +67,7 @@ export default {
       }
 
       // Perform save logic here
-      this.forms[this.editIndex] = { ...this.editData };
+      // ...
 
       this.closeModal();
     },
@@ -106,6 +117,11 @@ export default {
   },
 };
 </script>
+
+
+
+
+
 
 <style scoped>
 /* EditForm component styles */

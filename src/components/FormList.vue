@@ -2,7 +2,7 @@
   <div>
     <h2>Add user</h2>
     <div class="form-box">
-      <RouterLink to="/user/add" class="add-button" @click="openModal">+</RouterLink>
+      <router-link to="/users/add" class="add-button" @click="openModal">+</router-link>
 
       <table class="table">
         <thead>
@@ -21,8 +21,8 @@
             <td class="form-value-cell">{{ form.email }}</td>
             <td class="form-value-cell">{{ form.password }}</td>
             <td>
-              <RouterLink to="/user/edit" class="edit-button" @click="editForm(index)">Edit</RouterLink>
-              <RouterLink to="/user/delete" class="delete-button" @click="deleteForm(index)">Delete</RouterLink>
+              <router-link to="/users/edit" class="edit-button" @click="editForm(index)">Edit</router-link>
+              <router-link to="/users/delete" class="delete-button" @click="deleteForm(index)">Delete</router-link>
             </td>
           </tr>
         </tbody>
@@ -58,6 +58,17 @@
         </div>
       </div>
     </div>
+
+    <div class="modal" v-if="showConfirmation">
+      <div class="modal-content">
+        <h3>Confirm Deletion</h3>
+        <p>Are you sure you want to delete this user?</p>
+        <div class="button-row">
+          <button class="confirm-delete-button" @click="deleteFormConfirmed">Yes</button>
+          <button class="cancel-delete-button" @click="cancelDelete">No</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -73,6 +84,7 @@ export default {
         password: "",
       },
       showModal: false,
+      showConfirmation: false,
       editIndex: null,
       errors: {
         name: "",
@@ -83,72 +95,73 @@ export default {
     };
   },
   mounted() {
-    this.retrieveDataFromLocalStorage();
-  },
+  this.loadDataFromLocalStorage();
+   if (window.location.pathname.includes('/add')) {
+    this.openModal();
+  }
+},
+
+
   methods: {
+    loadDataFromLocalStorage() {
+      const data = localStorage.getItem("formList");
+      if (data) {
+        this.formList = JSON.parse(data);
+      }
+    },
+    saveDataToLocalStorage() {
+      localStorage.setItem("formList", JSON.stringify(this.formList));
+    },
     openModal() {
       this.showModal = true;
-      this.clearErrors();
-      this.editIndex = null;
-      this.editData = {
-        name: "",
-        phone: "",
-        email: "",
-        password: "",
-      };
-    },
-    editForm(index) {
-      this.showModal = true;
-      this.clearErrors();
-      const form = this.formList[index];
-      this.editIndex = index;
-      this.editData = { ...form };
     },
     closeModal() {
       this.showModal = false;
-      this.clearErrors();
-      this.editIndex = null;
+      this.resetForm();
+      this.$router.push('/users/list');
+    },
+    resetForm() {
       this.editData = {
         name: "",
         phone: "",
         email: "",
         password: "",
       };
-    },
-    createForm() {
-      if (this.validateForm()) {
-        if (this.editIndex !== null) {
-          Object.assign(this.formList[this.editIndex], this.editData);
-        } else {
-          this.formList.push({ ...this.editData });
-        }
-        this.saveDataToLocalStorage();
-        this.closeModal();
-      }
-    },
-    deleteForm(index) {
-      this.formList.splice(index, 1);
-      this.saveDataToLocalStorage();
+      this.errors = {
+        name: "",
+        phone: "",
+        email: "",
+        password: "",
+      };
+      this.editIndex = null;
     },
     validateForm() {
-      this.clearErrors();
       let isValid = true;
+      this.errors = {
+        name: "",
+        phone: "",
+        email: "",
+        password: "",
+      };
 
       if (!this.editData.name) {
         this.errors.name = "Name is required.";
         isValid = false;
       }
+
       if (!this.editData.phone) {
         this.errors.phone = "Phone number is required.";
         isValid = false;
-      } else if (this.editData.phone.length !== 10 || !/^\d+$/.test(this.editData.phone)) {
-        this.errors.phone = "Phone number must be a 10-digit number.";
-        isValid = false;
       }
+
       if (!this.editData.email) {
         this.errors.email = "Email is required.";
         isValid = false;
+      } else if (!this.isValidEmail(this.editData.email)) {
+        this.errors.email = "Email is invalid.";
+        isValid = false;
       }
+
       if (!this.editData.password) {
         this.errors.password = "Password is required.";
         isValid = false;
@@ -156,22 +169,39 @@ export default {
 
       return isValid;
     },
-    clearErrors() {
-      this.errors = {
-        name: "",
-        phone: "",
-        email: "",
-        password: "",
-      };
+    isValidEmail(email) {
+      // Email validation logic here
+      return true;
     },
-    saveDataToLocalStorage() {
-      localStorage.setItem("formList", JSON.stringify(this.formList));
-    },
-    retrieveDataFromLocalStorage() {
-      const storedData = localStorage.getItem("formList");
-      if (storedData) {
-        this.formList = JSON.parse(storedData);
+    createForm() {
+      if (this.validateForm()) {
+        if (this.editIndex !== null) {
+          this.formList.splice(this.editIndex, 1, this.editData);
+        } else {
+          this.formList.push(this.editData);
+        }
+        this.saveDataToLocalStorage();
+        this.closeModal();
       }
+    },
+    editForm(index) {
+      this.editIndex = index;
+      this.editData = { ...this.formList[index] };
+      this.showModal = true;
+    },
+    deleteForm(index) {
+      this.showConfirmation = true;
+      this.editIndex = index;
+    },
+    deleteFormConfirmed() {
+      this.formList.splice(this.editIndex, 1);
+      this.saveDataToLocalStorage();
+      this.showConfirmation = false;
+    },
+    cancelDelete() {
+      this.showConfirmation = false;
+      this.$router.push('/users/list');
+
     },
   },
 };
@@ -182,7 +212,7 @@ export default {
     padding: 20px;
     border-radius: 4px;
   }
-  
+
   .form-box {
     display: flex;
     align-items: center;
@@ -190,47 +220,48 @@ export default {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     padding: 20px;
   }
-  
+
   .add-button {
-  font-size: 24px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: none;
-  background-color: #45B2C9;
-  color: #fff;
-  cursor: pointer;
-  text-decoration: none;
-  transform: translateX(-50%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1;
-  position: relative;
-  top:-115px;
-  right:-100px;
-}
+    font-size: 24px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background-color: #45B2C9;
+    color: #fff;
+    cursor: pointer;
+    text-decoration: none;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+    position: relative;
+    top: -115px;
+    right: -100px;
+  }
 
   .table {
     width: 100%;
     margin-top: 20px;
     border-collapse: collapse;
   }
-  
+
   .table th,
   .table td {
     padding: 8px;
     border-bottom: 1px solid #ccc;
   }
-  
+
   .table th {
     background-color: #f2f2f2;
   }
-  .form-value-cell{
+
+  .form-value-cell {
     text-align: center;
   }
-  
-  .edit-button{
+
+  .edit-button {
     font-size: 14px;
     padding: 6px 12px;
     margin-right: 5px;
@@ -242,25 +273,22 @@ export default {
     text-decoration: none;
     position: relative;
     right: -97px;
-
   }
-  
+
   .delete-button {
     font-size: 14px;
     padding: 6px 12px;
     margin-right: 5px;
     border: none;
     border-radius: 5px;
-
     background-color: #E6321F;
     color: #fff;
     cursor: pointer;
     text-decoration: none;
     position: relative;
     right: -97px;
-
   }
-  
+
   .modal {
     position: fixed;
     top: 0;
@@ -273,7 +301,7 @@ export default {
     align-items: center;
     z-index: 999;
   }
-  
+
   .modal-content {
     background-color: #fff;
     padding: 20px;
@@ -281,51 +309,50 @@ export default {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     width: 400px;
   }
-  
+
   .modal-content h3 {
     margin-top: 0;
   }
-  
+
   .form-field {
     margin-bottom: 10px;
   }
-  
+
   .form-field label {
     display: block;
     font-weight: bold;
     margin-bottom: 5px;
   }
-  
+
   .form-field input {
     width: 100%;
     padding: 6px;
     border: 1px solid #ccc;
     border-radius: 4px;
   }
-  
+
   .error {
     color: #E6321F;
     font-size: 12px;
     margin-top: 5px;
   }
-  
+
   .button-row {
     margin-top: 10px;
     text-align: right;
   }
-  
-  .save-button{
+
+  .save-button {
     font-size: 14px;
     padding: 6px 12px;
     margin-left: 5px;
     border: none;
     border-radius: 5px;
-
     background-color: #45B2C9;
     color: #fff;
     cursor: pointer;
   }
-  
+
   .cancel-button {
     font-size: 14px;
     padding: 6px 12px;
@@ -335,5 +362,19 @@ export default {
     background-color: #E6321F;
     color: #fff;
     cursor: pointer;
+  }
+
+  .confirm-delete-button {
+    background-color: #45B2C9;
+    color: white;
+    border: none;
+    border-radius: 4px;
+  }
+
+  .cancel-delete-button {
+    background-color: #E6321F;
+    color: white;
+    border: none;
+    border-radius: 4px;
   }
 </style>
