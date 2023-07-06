@@ -1,24 +1,23 @@
 <template>
- <div>
-    <FormList/>
-   
-  </div>
+  
+  <BooksPath/>
 
 </template>
-
 <script >
-import FormList from './components/FormList.vue';
-
-
+import BooksPath from './components/BooksPath.vue'
 export default {
   name: 'App',
   components: {
-          FormList,
-          
+    
+    BooksPath
   }
 }
-</script>
 
-<style >
+</script>
+<style>
+
+#app {
+  margin-top: 60px
+}
 
 </style>
